@@ -1,0 +1,62 @@
+extract import "binary.spwn"
+
+UPPER_MASK = "10000000000000000000000000000000"
+LOWER_MASK = "01111111111111111111111111111111"
+BIT_CONV = "11111111111111111111111111111111"
+
+// implementation of mersenne twister in SPWN
+// currently is not accurate due to inaccurate modulo, division and multiplication operators (fixed in rwrt)
+type @mersenne_twister
+impl @mersenne_twister {
+  new: (seed: @number) {
+    let mt = [int_to_binary(seed)]
+
+    for i in 1..624 {
+      let temp = 1812433253 * binary_to_int(xor(
+        mt[i - 1], rshift(mt[i - 1], 30)
+      )) + i
+      temp = and(int_to_binary(temp), BIT_CONV) // convert to lower 32 bit
+
+      mt.push(temp)
+    }
+
+    return @mersenne_twister::{
+      seed,
+      mt,
+      index: 0
+    }
+  },
+
+  twist: (self) {
+    for i in 0..624 {
+      // TODO: instead of converting again and again implement bin arithmetic functions
+      y = int_to_binary(binary_to_int(
+        and(self.mt[i], UPPER_MASK)
+      ) + binary_to_int(
+        and(self.mt[(i + 1) % 624], LOWER_MASK)
+      ))
+
+      self.mt[i] = xor(self.mt[(i + 397) % 624], rshift(y, 1))
+
+      // check if y is odd
+      if and(y, "1") == "1" {
+        self.mt[i] = xor(self.mt[i], "10011001000010001011000011011111")
+      }
+    }
+  },
+
+  generate: (self) {
+    if self.index == 624 { self.index = 0 }
+    if self.index == 0 { self.twist() }
+
+    let y = self.mt[self.index]
+    y = xor(y, rshift(y, 11))
+    y = xor(y, and(lshift(y, 7), "10011101001011000101011010000000"))
+    y = xor(y, and(lshift(y, 15), "11101111110001100000000000000000"))
+    y = xor(y, rshift(y, 18))
+
+    self.index++
+
+    return binary_to_int(y)
+  }
+}

@@ -1,0 +1,7 @@
+import "mersenne_twister.spwn"
+
+let mt = @mersenne_twister::new(1)
+
+for _ in 0..5 {
+  $.print(mt.generate())
+}

@@ -1,0 +1,80 @@
+// written by me
+
+int_to_binary = (num: @number) {
+  if num == 0 { return "0" }
+  let temp = num
+  let res = ""
+
+  while temp > 0 {
+    res = @string(temp % 2) + res
+    temp = $.floor(temp / 2)
+  }
+  
+  return res
+}
+
+binary_to_int = (binary: @string) {
+  let res = 0
+
+  for char in binary {
+    res = res * 2 + @number(char)
+  }
+
+  return res
+}
+
+pad_with_zeroes = (a: @string, b: @string) {
+  max_len = $.max(a.length, b.length)
+  return [
+    "0" * (max_len - a.length) + a,
+    "0" * (max_len - b.length) + b,
+    max_len
+  ]
+}
+
+xor = (a: @string, b: @string) {
+  [bin_a, bin_b, max_len] = pad_with_zeroes(a, b)
+  let res = ""
+
+  for i in 0..max_len {
+    if bin_a[i] != bin_b[i] {
+      res += '1'
+    } else {
+      res += '0'
+    }
+  }
+
+  return res
+}
+
+and = (a: @string, b: @string) {
+  [bin_a, bin_b, max_len] = pad_with_zeroes(a, b)
+  let res = ""
+
+  for i in 0..max_len {
+    if [bin_a[i], bin_b[i]] == ["1", "1"] {
+      res += "1"
+    } else {
+      res += "0"
+    }
+  }
+
+  return res
+}
+
+rshift = (a: @string, shift: @number) {
+  return int_to_binary($.floor(binary_to_int(a) / (2 ^ shift)))
+}
+
+lshift = (a: @string, shift: @number) {
+  return int_to_binary($.floor(binary_to_int(a) * (2 ^ shift)))
+}
+
+return {
+  int_to_binary,
+  binary_to_int,
+  xor,
+  and,
+  rshift,
+  lshift
+}
